@@ -1,14 +1,14 @@
 import type { NextApiResponse } from "next"
-import { OpenAIEmbeddings } from "@langchain/openai";
+import { ChatGroq } from "@langchain/groq";
 import { NextResponse } from "next/server";
-import { YoutubeLoader } from "@langchain/community/document_loaders/web/youtube";
-import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
+import { OpenAIEmbeddings } from "@langchain/openai";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { MemoryVectorStore } from "langchain/vectorstores/memory";
-import { ChatGroq } from "@langchain/groq";
-import { PlaywrightWebBaseLoader } from "@langchain/community/document_loaders/web/playwright";
 import { createRetrievalChain } from "langchain/chains/retrieval";
+import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { createStuffDocumentsChain } from "langchain/chains/combine_documents";
+import { YoutubeLoader } from "@langchain/community/document_loaders/web/youtube";
+import { PlaywrightWebBaseLoader } from "@langchain/community/document_loaders/web/playwright";
 
 type ResponseData = {
   message: string
@@ -23,12 +23,11 @@ export async function POST(
   req: Request,
   res: NextApiResponse<ResponseData>
 ) {
-	const { link, groqApiKey } = await req.json();
+	const { link, apiKey: groqApiKey } = await req.json();
 
   const llmSummary = new ChatGroq({
-    apiKey: process.env.GROQ_API_KEY,
-    temperature: 1,
-    // modelName: "llama-3.1-70b-versatile"
+    apiKey: groqApiKey,
+    temperature: .1,
   });
 
   // YouTube loader
@@ -43,7 +42,14 @@ export async function POST(
     
     docs = await youtTubeLoader.load();
   } else {
-    const playwrightLoader = new PlaywrightWebBaseLoader(link);
+    const playwrightLoader = new PlaywrightWebBaseLoader(link, {
+      launchOptions: {
+        headless: true,
+      },
+      gotoOptions: {
+        waitUntil: "domcontentloaded",
+      },
+    });
 
     docs = await playwrightLoader.load();
   }
@@ -88,7 +94,7 @@ export async function POST(
   });
 
   const summary = await retrievalChain.invoke({
-    input: "Provide a detailed summary from this video.",
+    input: "Provide a detailed summary from this resource.",
   });
   
   console.log("SUMMARY:", summary.answer);
