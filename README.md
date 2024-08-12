@@ -1,4 +1,4 @@
-# Content Summarization API
+# Content Summarization
 
 This is a Next.js API route that summarizes content from YouTube videos and web pages using LangChain and OpenAI embeddings. The API accepts a URL and generates a concise summary of the content, which is particularly useful for quickly understanding large bodies of text or video transcripts.
 
