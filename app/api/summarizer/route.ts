@@ -30,8 +30,6 @@ export async function POST(
     temperature: .1,
   });
 
-  // YouTube loader
-
   let docs;
 
   if (isYouTubeLink(link)) {
